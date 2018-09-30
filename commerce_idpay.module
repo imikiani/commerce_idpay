@@ -70,7 +70,7 @@ function commerce_idpay_redirect_form($form, &$form_state, $order, $payment_meth
     'order_id' => $order->order_id,
     'amount' => $amount_decimal,
     'phone' => '',
-    'desc' => '',
+    'desc' => t('Order number #') . $order->order_id,
     'callback' => $callback,
   );
 
@@ -274,4 +274,3 @@ function commerce_idpay_check_double_spending($id) {
     return FALSE;
   }
 }
-
