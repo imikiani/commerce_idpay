@@ -1,0 +1,4 @@
+name = Commerce IDPay
+description = Provides IDPay (An Iranian payment company. https://idpay.ir) payment method for Drupal commerce.
+core = 7.x
+dependencies[] = commerce_payment
