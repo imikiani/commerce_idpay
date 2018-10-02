@@ -57,7 +57,7 @@ function commerce_idpay_redirect_form($form, &$form_state, $order, $payment_meth
   // For enabling the TMN on your site, you can clone this sandbox module created by Ahmad Hejazee:
   // https://www.drupal.org/sandbox/hejazee/1861440
   if ($currency_code == 'TMN') {
-    $amount_idpay = $amount_decimal * 10;
+    $amount_decimal *= 10;
   }
 
   // The callback url when the user is brought back to the website from the payment gateway.
