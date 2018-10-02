@@ -145,6 +145,21 @@ function commerce_idpay_redirect_form_validate($order, $payment_method) {
   $amount = $_POST['amount'];
   $date = $_POST['date'];
 
+  if($order->order_id != $order_id) {
+    // Checks if somebody is trying to abuse the transaction callback.
+    drupal_set_messsage(t('Abuse of transaction callback.'), 'error');
+    watchdog('commerce_idpay',
+      'A wrong order id is posted to the callback endpoint. It is occurred maybe due to abuse of transaction callback : %wrong instead of : %current is posted',
+      array(
+        '%wrong' => $order_id,
+        '%current' => $order->order_id,
+      ),
+      WATCHDOG_ERROR
+    );
+    commerce_payment_redirect_pane_previous_page($order);
+    return FALSE;
+  }
+
   // Before we inquiry for a payment at the IDPay endpoint, we must look for an
   // internal transaction.
   if ($transaction = commerce_idpay_load_transaction($id, $order_id)) {
