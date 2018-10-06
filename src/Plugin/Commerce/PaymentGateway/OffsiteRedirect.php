@@ -100,7 +100,7 @@ class OffsiteRedirect extends OffsitePaymentGatewayBase {
     parent::submitConfigurationForm($form, $form_state);
     if (!$form_state->getErrors()) {
       $values = $form_state->getValue($form['#parents']);
-      $this->configuration['api_key'] = $values['api_key'];
+      $this->configuration['api_key'] = trim($values['api_key']);
     }
   }
 
