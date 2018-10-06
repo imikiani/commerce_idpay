@@ -107,7 +107,7 @@ class PaymentOffsiteForm extends BasePaymentOffsiteForm implements ContainerInje
 
       return $this->buildRedirectForm($form, $form_state, $link, [], PaymentOffsiteForm::REDIRECT_POST);
     } catch (RequestException $e) {
-      throw new InvalidResponseException("commerce_idpay:> " . $e->getMessage());
+      throw new InvalidResponseException("commerce_idpay: " . $e->getMessage());
     }
   }
 
