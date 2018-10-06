@@ -30,17 +30,10 @@ class PaymentOffsiteForm extends BasePaymentOffsiteForm implements ContainerInje
    */
   protected $httpClient;
 
-  /**
-   * The messenger.
-   *
-   * @var \Drupal\Core\Messenger\MessengerInterface
-   */
-  protected $messenger;
 
-  public function __construct(EntityTypeManagerInterface $entity_type_manager, Client $http_client, MessengerInterface $messenger) {
+  public function __construct(EntityTypeManagerInterface $entity_type_manager, Client $http_client) {
     $this->paymentStorage = $entity_type_manager->getStorage('commerce_payment');
     $this->httpClient = $http_client;
-    $this->messenger = $messenger;
   }
 
   /**
@@ -49,8 +42,7 @@ class PaymentOffsiteForm extends BasePaymentOffsiteForm implements ContainerInje
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('entity_type.manager'),
-      $container->get('http_client'),
-      $container->get('messenger')
+      $container->get('http_client')
     );
   }
 
@@ -115,7 +107,6 @@ class PaymentOffsiteForm extends BasePaymentOffsiteForm implements ContainerInje
 
       return $this->buildRedirectForm($form, $form_state, $link, [], PaymentOffsiteForm::REDIRECT_POST);
     } catch (RequestException $e) {
-      $this->messenger->addError('Cannot communicate with the gateway.', 'error');
       throw new InvalidResponseException("commerce_idpay:> " . $e->getMessage());
     }
   }
