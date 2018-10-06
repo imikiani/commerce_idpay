@@ -63,7 +63,7 @@ class PaymentOffsiteForm extends BasePaymentOffsiteForm implements ContainerInje
 
     $api_key = $gateway_configuration['api_key'];
 
-    $callback = Url::fromUri('base:/checkout/' . $order_id . '/payment/return/' . $order->getData('payment_redirect_key'), ['absolute' => TRUE])
+    $callback = Url::fromUri('base:/checkout/' . $order_id . '/payment/return/', ['absolute' => TRUE])
       ->toString();
     $amount = (int) $payment->getAmount()->getNumber();
 
