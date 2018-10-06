@@ -133,7 +133,7 @@ class OffsiteRedirect extends OffsitePaymentGatewayBase {
       $headers = [
         'Content-Type' => 'application/json',
         'X-API-KEY' => $this->configuration['api_key'],
-        'X-SANDBOX' => ($this->configuration['mode'] ? 'true' : 'false'),
+        'X-SANDBOX' => ($this->configuration['mode'] == 'test' ? 'true' : 'false'),
       ];
 
       try {

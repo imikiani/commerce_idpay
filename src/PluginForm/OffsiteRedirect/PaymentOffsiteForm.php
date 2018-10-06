@@ -80,7 +80,7 @@ class PaymentOffsiteForm extends BasePaymentOffsiteForm implements ContainerInje
     $headers = [
       'Content-Type' => 'application/json',
       'X-API-KEY' => $api_key,
-      'X-SANDBOX' => ($mode ? 'true' : 'false'),
+      'X-SANDBOX' => ($mode == 'test' ? 'true' : 'false'),
     ];
 
     try {
