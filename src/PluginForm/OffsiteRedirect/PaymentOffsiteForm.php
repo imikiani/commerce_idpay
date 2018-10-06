@@ -101,7 +101,6 @@ class PaymentOffsiteForm extends BasePaymentOffsiteForm implements ContainerInje
         'payment_gateway' => $payment_gateway,
         'order_id' => $order->id(),
         'remote_id' => $response_content->id,
-        //'remote_state' => $request->query->get('payment_status'),
       ]);
       $new_payment->save();
 
