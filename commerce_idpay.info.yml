@@ -1,0 +1,7 @@
+name: 'Commerce IDPay'
+type: module
+description: 'Provides IDPay payment method for Drupal Commerce (https://idpay.ir).'
+package: Commerce
+dpendencies:
+  - commerce_payment
+core: '8.x'

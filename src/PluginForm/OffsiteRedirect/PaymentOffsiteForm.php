@@ -1,0 +1,123 @@
+<?php
+
+namespace Drupal\commerce_idpay\PluginForm\OffsiteRedirect;
+
+use Drupal\commerce_payment\PluginForm\PaymentOffsiteForm as BasePaymentOffsiteForm;
+use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Drupal\commerce_payment\Exception\InvalidResponseException;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Client;
+
+
+class PaymentOffsiteForm extends BasePaymentOffsiteForm implements ContainerInjectionInterface {
+
+  /**
+   * The payment storage.
+   *
+   * @var \Drupal\commerce_payment\PaymentStorageInterface
+   */
+  protected $paymentStorage;
+
+  /**
+   * The http client.
+   *
+   * @var \GuzzleHttp\Client
+   */
+  protected $httpClient;
+
+  /**
+   * The messenger.
+   *
+   * @var \Drupal\Core\Messenger\MessengerInterface
+   */
+  protected $messenger;
+
+  public function __construct(EntityTypeManagerInterface $entity_type_manager, Client $http_client, MessengerInterface $messenger) {
+    $this->paymentStorage = $entity_type_manager->getStorage('commerce_payment');
+    $this->httpClient = $http_client;
+    $this->messenger = $messenger;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('entity_type.manager'),
+      $container->get('http_client'),
+      $container->get('messenger')
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+    $form = parent::buildConfigurationForm($form, $form_state);
+
+    /** @var \Drupal\commerce_payment\Entity\PaymentInterface $payment */
+    $payment = $this->entity;
+    $order = $payment->getOrder();
+    $order_id = $order->id();
+    $payment_gateway = $payment->getPaymentGateway();
+
+    /** @var \Drupal\commerce_payment\Plugin\Commerce\PaymentGateway\OffsitePaymentGatewayInterface $payment_gateway_plugin */
+    $payment_gateway_plugin = $payment_gateway->getPlugin();
+    $gateway_configuration = $payment_gateway_plugin->getConfiguration();
+
+    $api_key = $gateway_configuration['api_key'];
+
+    $callback = Url::fromUri('base:/checkout/' . $order_id . '/payment/return/' . $order->getData('payment_redirect_key'), ['absolute' => TRUE])
+      ->toString();
+    $amount = (int) $payment->getAmount()->getNumber();
+    $mode = $gateway_configuration['mode'];
+
+    $url = 'https://api.idpay.ir/v1/payment';
+    $params = [
+      'order_id' => $order_id,
+      'amount' => $amount,
+      'phone' => '',
+      'desc' => t('Order number #') . $order_id,
+      'callback' => $callback,
+    ];
+
+    $headers = [
+      'Content-Type' => 'application/json',
+      'X-API-KEY' => $api_key,
+      'X-SANDBOX' => ($mode ? 'true' : 'false'),
+    ];
+
+    try {
+      $response = $this->httpClient->request('POST', $url, [
+        'headers' => $headers,
+        'body' => json_encode($params),
+      ]);
+      $response_content = $response->getBody()->getContents();
+      $response_content = json_decode($response_content);
+      $link = $response_content->link;
+
+      // Create new payment but with state 'Authorization' not completed.s
+      // On payment return, if everything is ok, the state of this new payment will be converted to 'Completed'.
+      $new_payment = $this->paymentStorage->create([
+        'state' => 'authorization',
+        'amount' => $order->getTotalPrice(),
+        'payment_gateway' => $payment_gateway,
+        'order_id' => $order->id(),
+        'remote_id' => $response_content->id,
+        //'remote_state' => $request->query->get('payment_status'),
+      ]);
+      $new_payment->save();
+
+      return $this->buildRedirectForm($form, $form_state, $link, [], PaymentOffsiteForm::REDIRECT_POST);
+    } catch (RequestException $e) {
+      $this->messenger->addError('Cannot communicate with the gateway.', 'error');
+      throw new InvalidResponseException("commerce_idpay:> " . $e->getMessage());
+    }
+  }
+
+}
