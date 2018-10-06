@@ -146,11 +146,11 @@ class OffsiteRedirect extends OffsitePaymentGatewayBase {
         $response_contents = json_decode($response_contents);
         if ($response_contents->status == 100) {
           $payment->setState('completed');
-          $payment->setRemoteState('status: ' . $response_contents->status . ' & track_id: ' . $response_contents->track_id);
+          $payment->setRemoteState('track_id: ' . $response_contents->track_id . ' / status: ' . $response_contents->status);
           $payment->save();
         }
         else {
-          $payment->setRemoteState('status: ' . $status . ' & track_id: ' . $track_id);
+          $payment->setRemoteState('track_id: ' . $response_contents->track_id . ' / status: ' . $response_contents->status);
           $payment->save();
           throw new PaymentGatewayException($this->t("commerce_idpay: Payment failed with status code: %code", [
             '%code' => $response_contents->status,
