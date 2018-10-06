@@ -66,6 +66,14 @@ class PaymentOffsiteForm extends BasePaymentOffsiteForm implements ContainerInje
     $callback = Url::fromUri('base:/checkout/' . $order_id . '/payment/return/' . $order->getData('payment_redirect_key'), ['absolute' => TRUE])
       ->toString();
     $amount = (int) $payment->getAmount()->getNumber();
+
+    if ($payment->getAmount()->getCurrencyCode() == 'TMN') {
+      // Considers all of currency codes as IRR except TMN (Iranian Toman, an unofficial currency code)
+      // If the currency code is 'TMN', converts Iranian Tomans to Iranian Rials by multiplying by 10.
+      // This is due to accepting Iranian Rial as the currency code by the gateway.
+      $amount *= 10;
+    }
+
     $mode = $gateway_configuration['mode'];
 
     $url = 'https://api.idpay.ir/v1/payment';
