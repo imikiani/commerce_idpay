@@ -88,6 +88,7 @@ class OffsiteRedirect extends OffsitePaymentGatewayBase {
       '#title' => $this->t('API Key'),
       '#default_value' => $this->configuration['api_key'],
       '#description' => $this->t('You can obtain an API Key from https://idpay.ir/dashboard/web-services'),
+      '#required' => TRUE,
     ];
 
     return $form;
