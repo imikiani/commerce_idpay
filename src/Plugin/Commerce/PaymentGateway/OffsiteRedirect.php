@@ -186,6 +186,9 @@ class OffsiteRedirect extends OffsitePaymentGatewayBase {
 
       return $payment;
     }
+    else {
+      return FALSE;
+    }
 
   }
 
