@@ -109,7 +109,7 @@ class PaymentOffsiteForm extends BasePaymentOffsiteForm implements ContainerInje
       $response_content = json_decode($response_content);
       $link = $response_content->link;
 
-      // Create new payment but with state 'Authorization' not completed.s
+      // Create a new payment but with state 'Authorization' not completed.
       // On payment return, if everything is ok, the state of this new payment will be converted to 'Completed'.
       $new_payment = $this->paymentStorage->create([
         'state' => 'authorization',
