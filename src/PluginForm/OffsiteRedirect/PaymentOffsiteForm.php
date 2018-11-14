@@ -6,6 +6,7 @@ use Drupal\commerce_payment\PluginForm\PaymentOffsiteForm as BasePaymentOffsiteF
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\commerce_payment\Exception\InvalidResponseException;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -29,10 +30,17 @@ class PaymentOffsiteForm extends BasePaymentOffsiteForm implements ContainerInje
    */
   protected $httpClient;
 
+  /**
+   * The messenger.
+   *
+   * @var \Drupal\Core\Messenger\MessengerInterface
+   */
+  protected $messenger;
 
-  public function __construct(EntityTypeManagerInterface $entity_type_manager, Client $http_client) {
+  public function __construct(EntityTypeManagerInterface $entity_type_manager, Client $http_client, MessengerInterface $messenger) {
     $this->paymentStorage = $entity_type_manager->getStorage('commerce_payment');
     $this->httpClient = $http_client;
+    $this->messenger = $messenger;
   }
 
   /**
@@ -41,7 +49,8 @@ class PaymentOffsiteForm extends BasePaymentOffsiteForm implements ContainerInje
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('entity_type.manager'),
-      $container->get('http_client')
+      $container->get('http_client'),
+      $container->get('messenger')
     );
   }
 
@@ -114,7 +123,7 @@ class PaymentOffsiteForm extends BasePaymentOffsiteForm implements ContainerInje
       return $this->buildRedirectForm($form, $form_state, $link, [], PaymentOffsiteForm::REDIRECT_POST);
     } catch (RequestException $e) {
       $response_content = \GuzzleHttp\json_decode($e->getResponse()->getBody()->getContents());
-      drupal_set_message($response_content->error_message, 'error');
+      $this->messenger->addError($response_content->error_message);
       throw new InvalidResponseException("commerce_idpay: " . $e->getMessage());
     }
   }
