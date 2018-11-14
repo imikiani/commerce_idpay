@@ -110,7 +110,8 @@ function commerce_idpay_redirect_form($form, &$form_state, $order, $payment_meth
       }
     }
     else {
-      drupal_set_message(t('Cannot communicate with the gateway.'), 'error');
+      $error_response = json_decode($response->data);
+      drupal_set_message(t($error_response->error_message), 'error');
       watchdog('commerce_idpay',
         'An error is occurred with code: %code and message: @message when accessing the payment endpoint: !url.',
         array(
