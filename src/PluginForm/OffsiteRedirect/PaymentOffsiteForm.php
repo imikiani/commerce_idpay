@@ -122,7 +122,9 @@ class PaymentOffsiteForm extends BasePaymentOffsiteForm implements ContainerInje
 
       return $this->buildRedirectForm($form, $form_state, $link, [], PaymentOffsiteForm::REDIRECT_POST);
     } catch (RequestException $e) {
-      $response_content = \GuzzleHttp\json_decode($e->getResponse()->getBody()->getContents());
+      $response_content = \GuzzleHttp\json_decode($e->getResponse()
+        ->getBody()
+        ->getContents());
       $this->messenger->addError($response_content->error_message);
       throw new InvalidResponseException("commerce_idpay: " . $e->getMessage());
     }

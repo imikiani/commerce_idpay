@@ -168,7 +168,9 @@ class OffsiteRedirect extends OffsitePaymentGatewayBase {
         }
 
       } catch (RequestException $e) {
-        $response_contents = \GuzzleHttp\json_decode($e->getResponse()->getBody()->getContents());
+        $response_contents = \GuzzleHttp\json_decode($e->getResponse()
+          ->getBody()
+          ->getContents());
         $this->messenger->addError($response_contents->error_message);
         throw new InvalidResponseException('commerce_idpay: ' . $e->getMessage());
       }
