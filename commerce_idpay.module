@@ -205,8 +205,8 @@ function commerce_idpay_redirect_form_validate($order, $payment_method) {
         }
       }
       elseif ($response->code >= 400 && $response->code < 500) {
-        // In this case the gateway will send an error in the plain text as well as an error code.
-        drupal_set_messsage(t('Payment failed.'), 'error');
+        $error_response = json_decode($response->data);
+        drupal_set_message(t($error_response->error_message), 'error');
         watchdog('commerce_idpay',
           'Payment failed. This is due to error with code: %code and message: @message',
           array(
