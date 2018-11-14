@@ -113,6 +113,8 @@ class PaymentOffsiteForm extends BasePaymentOffsiteForm implements ContainerInje
 
       return $this->buildRedirectForm($form, $form_state, $link, [], PaymentOffsiteForm::REDIRECT_POST);
     } catch (RequestException $e) {
+      $response_content = \GuzzleHttp\json_decode($e->getResponse()->getBody()->getContents());
+      drupal_set_message($response_content->error_message, 'error');
       throw new InvalidResponseException("commerce_idpay: " . $e->getMessage());
     }
   }
