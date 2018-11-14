@@ -168,13 +168,25 @@ class OffsiteRedirect extends OffsitePaymentGatewayBase {
         }
 
       } catch (RequestException $e) {
-        if ($e->getResponse()) {
-          $response_contents = \GuzzleHttp\json_decode($e->getResponse()
-            ->getBody()
-            ->getContents());
-          $this->messenger->addError($response_contents->error_message);
+        if ($e->getCode() >= 400 && $e->getCode() < 500) {
+          if ($e->getResponse()) {
+            $response_contents = \GuzzleHttp\json_decode($e->getResponse()
+              ->getBody()
+              ->getContents());
+            $this->messenger->addError($response_contents->error_message);
+
+            throw new InvalidResponseException("commerce_idpay: " . $this->t('Payment failed. This is due to an error with http code: %http_code, error_code: %error_code and error_message: "@error_message" when accessing the inquiry endpoint: @url', [
+                '%http_code' => $e->getCode(),
+                '%error_code' => $response_contents->error_code,
+                '@error_message' => $response_contents->error_message,
+                '@url' => $e->getRequest()->getUri(),
+              ]));
+          }
+          throw new InvalidResponseException('commerce_idpay: ' . $e->getMessage());
         }
-        throw new InvalidResponseException('commerce_idpay: ' . $e->getMessage());
+        elseif ($e->getCode() >= 500) {
+          throw new InvalidResponseException('commerce_idpay: ' . $e->getMessage());
+        }
       }
     }
     else {
