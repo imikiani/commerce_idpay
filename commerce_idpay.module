@@ -113,10 +113,11 @@ function commerce_idpay_redirect_form($form, &$form_state, $order, $payment_meth
       $error_response = json_decode($response->data);
       drupal_set_message(t($error_response->error_message), 'error');
       watchdog('commerce_idpay',
-        'An error is occurred with code: %code and message: @message when accessing the payment endpoint: !url.',
+        'An error is occurred with http code: %http_code, error_code: %error_code and error_message: "@error_message" when accessing the payment endpoint: !url.',
         array(
-          '%code' => $response->code,
-          '@message' => $response->data,
+          '%http_code' => $response->code,
+          '%error_code' => $error_response->error_code,
+          '@error_message' => $error_response->error_message,
           '!url' => $url,
         ),
         WATCHDOG_ERROR);
@@ -208,10 +209,12 @@ function commerce_idpay_redirect_form_validate($order, $payment_method) {
         $error_response = json_decode($response->data);
         drupal_set_message(t($error_response->error_message), 'error');
         watchdog('commerce_idpay',
-          'Payment failed. This is due to error with code: %code and message: @message',
+          'Payment failed. This is due to an error with http code: %http_code, error_code: %error_code and error_message: "@error_message" when accessing the inquiry endpoint: !url',
           array(
-            '%code' => $response->code,
-            '@message' => $response->data,
+            '%http_code' => $response->code,
+            '%error_code' => $error_response->error_code,
+            '@error_message' => $error_response->error_message,
+            '!url' => $url,
           ),
           WATCHDOG_ERROR
         );
@@ -222,9 +225,10 @@ function commerce_idpay_redirect_form_validate($order, $payment_method) {
       elseif ($response->code >= 500) {
         drupal_set_messsage(t('Payment failed.'), 'error');
         watchdog('commerce_idpay',
-          'Payment not proceed. This is due to error with code: %code',
+          'Payment failed. This is due to an error with http code: %http_code when accessing the inquiry endpoint: !url',
           array(
-            '%code' => $response->code,
+            '%http_code' => $response->code,
+            '!url' => $url,
           ),
           WATCHDOG_ERROR
         );
