@@ -193,13 +193,13 @@ function commerce_idpay_redirect_form_validate($order, $payment_method) {
           // the payment is successful.
           // Therefore we will save the transaction as a successful of one.
           // Otherwise we will save it as a failed transaction.
-          commerce_idpay_update_transaction($transaction, $result->track_id, $result->status, COMMERCE_PAYMENT_STATUS_SUCCESS);
+          commerce_idpay_update_transaction($transaction, $result->track_id, $result->status, $result->card_no, COMMERCE_PAYMENT_STATUS_SUCCESS);
           commerce_payment_redirect_pane_next_page($order);
           drupal_set_message("Payment succeeded.");
           return TRUE;
         }
         else {
-          commerce_idpay_update_transaction($transaction, $result->track_id, $result->status, COMMERCE_PAYMENT_STATUS_FAILURE);
+          commerce_idpay_update_transaction($transaction, $result->track_id, $result->status, $result->card_no, COMMERCE_PAYMENT_STATUS_FAILURE);
           commerce_payment_redirect_pane_previous_page($order);
           drupal_set_message("Payment failed.", 'error');
           return FALSE;
@@ -218,7 +218,7 @@ function commerce_idpay_redirect_form_validate($order, $payment_method) {
           ),
           WATCHDOG_ERROR
         );
-        commerce_idpay_update_transaction($transaction, $track_id, $status, COMMERCE_PAYMENT_STATUS_FAILURE);
+        commerce_idpay_update_transaction($transaction, $track_id, $status, '', COMMERCE_PAYMENT_STATUS_FAILURE);
         commerce_payment_redirect_pane_previous_page($order);
         return FALSE;
       }
@@ -254,21 +254,23 @@ function commerce_idpay_redirect_form_validate($order, $payment_method) {
  * @param $transaction
  * @param $track_id
  * @param $remote_status
+ * @param $card_no
  * @param $status
  */
-function commerce_idpay_update_transaction($transaction, $track_id, $remote_status, $status) {
+function commerce_idpay_update_transaction($transaction, $track_id, $remote_status, $card_no = '', $status) {
   $transaction->status = $status;
 
   if ($status == COMMERCE_PAYMENT_STATUS_SUCCESS) {
-    $transaction->message = 'successful (id: @id, track_id: @track_id, status: @remote_status)';
+    $transaction->message = 'successful (id: @id, track_id: @track_id, status: @remote_status, card_no: @card_no)';
   }
   elseif ($status == COMMERCE_PAYMENT_STATUS_FAILURE) {
-    $transaction->message = 'failed (id: @id, track_id: @track_id, status: @remote_status)';
+    $transaction->message = 'failed (id: @id, track_id: @track_id, status: @remote_status, card_no: @card_no)';
   }
   $transaction->message_variables = array(
     '@id' => $transaction->remote_id,
     '@track_id' => $track_id,
     '@remote_status' => $remote_status,
+    '@card_no' => $card_no,
   );
   commerce_payment_transaction_save($transaction);
 }
